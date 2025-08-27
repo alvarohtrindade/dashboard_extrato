@@ -1,0 +1,99 @@
+# Regras de Análise de Liquidez
+
+name: "Análise de Liquidez"
+description: "Regras para detectar problemas de liquidez nos fundos"
+
+# Métricas principais
+metrics:
+  liquidity_ratio:
+    name: "Razão de Liquidez"
+    description: "Razão entre entradas e saídas"
+    calculation: "total_entries / ABS(total_exits)"
+    format: "ratio"
+    
+  volume_concentration:
+    name: "Concentração de Volume"
+    description: "Concentração de operações por período"
+    calculation: "MAX(daily_volume) / AVG(daily_volume)"
+    format: "ratio"
+    
+  balance_volatility:
+    name: "Volatilidade do Saldo"
+    description: "Desvio padrão das variações diárias"
+    calculation: "STDDEV(daily_balance_change)"
+    format: "currency"
+
+# Thresholds para alertas
+thresholds:
+  liquidity_ratio:
+    critical_low: 0.5
+    warning_low: 0.
+    optimal_min: 0.9
+    optimal_max: 1.1
+    warning_high: 1.5
+    critical_high: 2.0
+    
+  volume_concentration:
+    warning: 3.0
+    critical: 5.0
+    
+  balance_volatility:
+    warning: 100000  # R$ 100k
+    critical: 500000  # R$ 500k
+
+# Regras de alerta
+alert_rules:
+  - name: "Liquidez Crítica Baixa"
+    condition: "liquidity_ratio < 0.5"
+    severity: "critical"
+    message: "Fundo {fund_name} com liquidez crítica: {liquidity_ratio:.2f}"
+    
+  - name: "Liquidez Baixa"
+    condition: "liquidity_ratio >= 0.5 AND liquidity_ratio < 0.8"
+    severity: "warning"
+    message: "Fundo {fund_name} com baixa liquidez: {liquidity_ratio:.2f}"
+    
+  - name: "Liquidez Excessiva"
+    condition: "liquidity_ratio > 2.0"
+    severity: "warning"
+    message: "Fundo {fund_name} com liquidez excessiva: {liquidity_ratio:.2f}"
+    
+  - name: "Alta Concentração"
+    condition: "volume_concentration > 5.0"
+    severity: "critical"
+    message: "Fundo {fund_name} com alta concentração de volume: {volume_concentration:.2f}"
+    
+  - name: "Alta Volatilidade"
+    condition: "balance_volatility > 500000"
+    severity: "warning"
+    message: "Fundo {fund_name} com alta volatilidade: R$ {balance_volatility:,.2f}"
+
+# Queries SQL para análise
+queries:
+  fund_liquidity_metrics: |
+    SELECT 
+      nmfundo,
+      SUM(COALESCE(entrada, 0)) as total_entries,
+      SUM(COALESCE(saida, 0)) as total_exits,
+      COUNT(*) as operation_count,
+      AVG(COALESCE(entrada, 0) - COALESCE(saida, 0)) as avg_net_flow,
+      STDDEV(COALESCE(entrada, 0) - COALESCE(saida, 0)) as flow_volatility
+    FROM DW_STAGING.vw_extrato
+    WHERE DATE(dt_lancamento) BETWEEN %s AND %s
+    {fund_filter}
+    {custodian_filter}
+    GROUP BY nmfundo
+    
+  daily_metrics: |
+    SELECT 
+      DATE(dt_lancamento) as date,
+      nmfundo,
+      SUM(COALESCE(entrada, 0)) as daily_entries,
+      SUM(COALESCE(saida, 0)) as daily_exits,
+      SUM(COALESCE(entrada, 0) - COALESCE(saida, 0)) as daily_net_flow
+    FROM DW_STAGING.vw_extrato
+    WHERE DATE(dt_lancamento) BETWEEN %s AND %s
+    {fund_filter}
+    {custodian_filter}
+    GROUP BY DATE(dt_lancamento), nmfundo
+    ORDER BY date DESC, nmfundo

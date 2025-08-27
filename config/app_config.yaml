@@ -1,0 +1,77 @@
+# Configurações da Aplicação Catálise
+
+database:
+  host: catalise-bi-dados-cluster.cluster-ciaao5zm9beh.sa-east-1.rds.amazonaws.com
+  port: 3306
+  user: admin
+  password: yb222KraY7PTN0jbH7P3
+  database: DW_STAGING
+  pool_size: 5
+  pool_timeout: 30
+
+security:
+  secret_key: "IR5/I+nB0qzc9xwA0mWAwUB07vN+uFgwx6xNSaj1"
+  session_timeout: 480  # minutos
+  max_login_attempts: 5
+
+analytics:
+  liquidity_ratio_min: 0.8
+  liquidity_ratio_max: 1.5
+  concentration_threshold: 30.0  # percentual
+  default_period_days: 45
+  cache_ttl: 1800  # segundos
+
+ui:
+  refresh_interval: 300  # segundos
+  max_records_display: 10000
+
+# Mapeamento de campos da view para o sistema
+field_mapping:
+  # Mapeamento principal
+  date_field: "dt_lancamento"
+  fund_field: "nmfundo"
+  custodian_field: "fonte"
+  entry_field: "entrada"
+  exit_field: "saida"
+  balance_field: "saldo"
+  description_field: "lancamento"
+  
+  # Campos calculados
+  value_calculation: "COALESCE(entrada, 0) - COALESCE(saida, 0)"
+  operation_type_logic: |
+    CASE 
+      WHEN entrada > 0 THEN 'Crédito'
+      WHEN saida > 0 THEN 'Débito'
+      ELSE 'Neutro'
+    END
+
+# Configurações de análise por tipo
+analysis_types:
+  liquidity:
+    enabled: true
+    thresholds:
+      critical_low: 0.5
+      warning_low: 0.8
+      warning_high: 1.5
+      critical_high: 2.0
+    
+  concentration:
+    enabled: true
+    thresholds:
+      warning: 20.0
+      critical: 30.0
+    
+  balance_evolution:
+    enabled: true
+    periods:
+      short: 7
+      medium: 30
+      long: 45
+
+# Custodiantes conhecidos
+custodians:
+  - daycoval
+  - btg
+  - singulare
+  - master
+  - fidd
