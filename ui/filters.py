@@ -13,29 +13,31 @@ class FilterManager:
     def __init__(self, repository: DataRepository):
         self.repository = repository
     
-    @cache_static(ttl=3600)
-    @time_operation("get_available_funds")
-    def _get_available_funds(_self) -> List[str]:
+    def _get_available_funds(self) -> List[str]:
         """Cache para fundos disponíveis com performance tracking"""
-        try:
-            funds = _self.repository.get_available_funds()
-            logger.info(f"Carregados {len(funds)} fundos disponíveis")
-            return funds
-        except Exception as e:
-            logger.error(f"Erro ao carregar fundos: {str(e)}")
-            return []
+        # Usar cache simples via functools para evitar problemas com Streamlit
+        if not hasattr(self, '_funds_cache'):
+            try:
+                funds = self.repository.get_available_funds()
+                logger.info(f"Carregados {len(funds)} fundos disponíveis")
+                self._funds_cache = funds
+            except Exception as e:
+                logger.error(f"Erro ao carregar fundos: {str(e)}")
+                self._funds_cache = []
+        return self._funds_cache
     
-    @cache_static(ttl=3600)
-    @time_operation("get_available_custodians")
-    def _get_available_custodians(_self) -> List[str]:
+    def _get_available_custodians(self) -> List[str]:
         """Cache para custodiantes disponíveis com performance tracking"""
-        try:
-            custodians = _self.repository.get_available_custodians()
-            logger.info(f"Carregados {len(custodians)} custodiantes disponíveis")
-            return custodians
-        except Exception as e:
-            logger.error(f"Erro ao carregar custodiantes: {str(e)}")
-            return []
+        # Usar cache simples via functools para evitar problemas com Streamlit
+        if not hasattr(self, '_custodians_cache'):
+            try:
+                custodians = self.repository.get_available_custodians()
+                logger.info(f"Carregados {len(custodians)} custodiantes disponíveis")
+                self._custodians_cache = custodians
+            except Exception as e:
+                logger.error(f"Erro ao carregar custodiantes: {str(e)}")
+                self._custodians_cache = []
+        return self._custodians_cache
     
     def create_date_filter(self, default_days: int = 45) -> Tuple[date, date]:
         """Cria filtro de período"""

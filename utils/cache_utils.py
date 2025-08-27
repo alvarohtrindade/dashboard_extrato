@@ -72,7 +72,7 @@ class CacheManager:
         """Decorator para dados que mudam pouco (fundos, custodiantes)"""
         def decorator(func: Callable):
             @wraps(func)
-            @st.cache_data(ttl=ttl)
+            @st.cache_data(ttl=ttl, hash_funcs={object: id})  # Use object ID for hashing
             def wrapper(*args, **kwargs):
                 try:
                     result = func(*args, **kwargs)
