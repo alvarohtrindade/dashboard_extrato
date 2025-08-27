@@ -4,7 +4,6 @@ from typing import List, Tuple, Optional
 import pandas as pd
 
 from data.repository import DataRepository
-from utils.cache_utils import cache_static, time_operation
 from utils.logging_utils import Log
 
 logger = Log.get_logger(__name__)

@@ -11,7 +11,6 @@ from plotly.subplots import make_subplots
 
 from data.models import FilterParams
 from data.repository import DataRepository
-from utils.cache_utils import cache_metrics, time_operation
 from utils.logging_utils import Log
 
 logger = Log.get_logger(__name__)
@@ -22,10 +21,15 @@ class KPIManager:
     def __init__(self, repository: DataRepository):
         self.repository = repository
     
-    @cache_metrics(ttl=300)  # Cache de 5 minutos para métricas
-    @time_operation("calculate_financial_kpis")
     def calculate_financial_kpis(self, filters: FilterParams) -> Dict[str, Any]:
         """Calcula KPIs financeiros essenciais"""
+        # Cache simples usando session_state
+        import streamlit as st
+        cache_key = f"kpis_{filters.start_date}_{filters.end_date}_{hash(str(filters.funds))}"
+        
+        if cache_key in st.session_state:
+            return st.session_state[cache_key]
+        
         try:
             # Query principal para dados do período
             query_data = self.repository.get_extract_data(filters)
@@ -72,6 +76,9 @@ class KPIManager:
             }
             
             logger.info(f"KPIs calculados: {len(kpis)} métricas para {len(query_data)} registros")
+            
+            # Cache o resultado
+            st.session_state[cache_key] = kpis
             return kpis
             
         except Exception as e:
