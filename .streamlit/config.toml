@@ -1,0 +1,37 @@
+[global]
+developmentMode = false
+
+[server]
+runOnSave = true
+port = 8501
+enableCORS = false
+enableXsrfProtection = true
+
+[browser]
+serverAddress = "0.0.0.0"
+gatherUsageStats = false
+serverPort = 8501
+
+[theme]
+primaryColor = "#1E3A8A"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F1F5F9"
+textColor = "#1E293B"
+font = "sans serif"
+
+[client]
+caching = true
+displayEnabled = true
+
+[runner]
+magicEnabled = true
+installTracer = false
+fixMatplotlib = true
+
+[logger]
+level = "info"
+messageFormat = "%(asctime)s %(message)s"
+
+[deprecation]
+showfileUploaderEncoding = false
+showPyplotGlobalUse = false

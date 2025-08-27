@@ -12,6 +12,7 @@ from .components import UIComponents
 from .filters import FilterManager
 from .charts import ChartManager
 from .pages import ExtratoPage, AnalysisPage, MonitoringPage
+from .kpis import KPIManager
 
 class Dashboard:
     def __init__(self, auth_service: AuthService, repository: DataRepository, 
@@ -22,6 +23,7 @@ class Dashboard:
         self.settings = settings
         self.filter_manager = FilterManager(repository)
         self.chart_manager = ChartManager()
+        self.kpi_manager = KPIManager(repository)
         
         # Inicializar estado
         self._init_session_state()
@@ -128,6 +130,13 @@ class Dashboard:
         # Sidebar com filtros
         with st.sidebar:
             self._render_sidebar_filters()
+        
+        # KPIs em tempo real (sempre visível)
+        current_filters = self._get_current_filters()
+        kpis = self.kpi_manager.calculate_financial_kpis(current_filters)
+        self.kpi_manager.render_kpi_dashboard(kpis)
+        
+        st.markdown("---")
         
         # Tabs principais
         tab1, tab2, tab3 = st.tabs(["📊 Extratos", "📈 Análises", "🔍 Monitoramento"])

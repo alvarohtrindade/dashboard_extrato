@@ -1,16 +1,16 @@
 # Configurações da Aplicação Catálise
 
 database:
-  host: catalise-bi-dados-cluster.cluster-ciaao5zm9beh.sa-east-1.rds.amazonaws.com
+  host: ""  # Configure via environment variables ou secrets
   port: 3306
-  user: admin
-  password: yb222KraY7PTN0jbH7P3
+  user: ""  # Configure via DB_USER
+  password: ""  # Configure via DB_PASSWORD  
   database: DW_STAGING
   pool_size: 5
   pool_timeout: 30
 
 security:
-  secret_key: "IR5/I+nB0qzc9xwA0mWAwUB07vN+uFgwx6xNSaj1"
+  secret_key: ""  # Configure via SECRET_KEY environment variable
   session_timeout: 480  # minutos
   max_login_attempts: 5
 

@@ -1,6 +1,16 @@
-# Dashboard Catálise - Análise de Extratos
+# Dashboard Catálise - Extratos Financeiros
 
-Sistema para análise de liquidez, compliance e performance de fundos de investimento.
+## 🚀 Deploy em Produção
+
+Dashboard profissional para análise de extratos financeiros de fundos de investimento, com foco em liquidez, compliance e performance.
+
+### ✨ Recursos Principais
+
+- **📊 KPIs Financeiros em Tempo Real**: Liquidez, concentração, eficiência operacional
+- **🔍 Filtros Avançados**: Busca dinâmica de fundos, períodos personalizados
+- **💡 Cache Inteligente**: Performance otimizada para grandes volumes
+- **🔐 Autenticação Segura**: Microsoft Entra ID + login tradicional
+- **📈 Análises Críticas**: Alertas de risco e métricas de compliance
 
 ## 🏗️ Estrutura do Projeto
 

@@ -49,16 +49,24 @@ class AppSettings:
         else:
             config_data = {}
         
-        # Database config
+        # Database config - suporte para Streamlit secrets
         db_config = config_data.get('database', {})
+        
+        # Tentar usar Streamlit secrets primeiro, depois env vars
+        try:
+            import streamlit as st
+            secrets = st.secrets.get('database', {})
+        except:
+            secrets = {}
+        
         self.database = DatabaseConfig(
-            host=os.getenv('DB_HOST', db_config.get('host', 'localhost')),
-            port=int(os.getenv('DB_PORT', db_config.get('port', 3306))),
-            user=os.getenv('DB_USER', db_config.get('user', 'user')),
-            password=os.getenv('DB_PASSWORD', db_config.get('password', 'password')),
-            database=os.getenv('DB_NAME', db_config.get('database', 'funds_db')),
-            pool_size=int(os.getenv('DB_POOL_SIZE', db_config.get('pool_size', 5))),
-            pool_timeout=int(os.getenv('DB_POOL_TIMEOUT', db_config.get('pool_timeout', 30)))
+            host=secrets.get('DB_HOST') or os.getenv('DB_HOST', db_config.get('host', 'localhost')),
+            port=int(secrets.get('DB_PORT') or os.getenv('DB_PORT', db_config.get('port', 3306))),
+            user=secrets.get('DB_USER') or os.getenv('DB_USER', db_config.get('user', 'user')),
+            password=secrets.get('DB_PASSWORD') or os.getenv('DB_PASSWORD', db_config.get('password', 'password')),
+            database=secrets.get('DB_NAME') or os.getenv('DB_NAME', db_config.get('database', 'DW_STAGING')),
+            pool_size=int(secrets.get('DB_POOL_SIZE') or os.getenv('DB_POOL_SIZE', db_config.get('pool_size', 5))),
+            pool_timeout=int(secrets.get('DB_POOL_TIMEOUT') or os.getenv('DB_POOL_TIMEOUT', db_config.get('pool_timeout', 30)))
         )
         
         # Security config

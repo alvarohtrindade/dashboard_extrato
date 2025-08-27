@@ -4,20 +4,38 @@ from typing import List, Tuple, Optional
 import pandas as pd
 
 from data.repository import DataRepository
+from utils.cache_utils import cache_static, time_operation
+from utils.logging_utils import Log
+
+logger = Log.get_logger(__name__)
 
 class FilterManager:
     def __init__(self, repository: DataRepository):
         self.repository = repository
     
-    @st.cache_data(ttl=3600)
+    @cache_static(ttl=3600)
+    @time_operation("get_available_funds")
     def _get_available_funds(_self) -> List[str]:
-        """Cache para fundos disponíveis"""
-        return _self.repository.get_available_funds()
+        """Cache para fundos disponíveis com performance tracking"""
+        try:
+            funds = _self.repository.get_available_funds()
+            logger.info(f"Carregados {len(funds)} fundos disponíveis")
+            return funds
+        except Exception as e:
+            logger.error(f"Erro ao carregar fundos: {str(e)}")
+            return []
     
-    @st.cache_data(ttl=3600)
+    @cache_static(ttl=3600)
+    @time_operation("get_available_custodians")
     def _get_available_custodians(_self) -> List[str]:
-        """Cache para custodiantes disponíveis"""
-        return _self.repository.get_available_custodians()
+        """Cache para custodiantes disponíveis com performance tracking"""
+        try:
+            custodians = _self.repository.get_available_custodians()
+            logger.info(f"Carregados {len(custodians)} custodiantes disponíveis")
+            return custodians
+        except Exception as e:
+            logger.error(f"Erro ao carregar custodiantes: {str(e)}")
+            return []
     
     def create_date_filter(self, default_days: int = 45) -> Tuple[date, date]:
         """Cria filtro de período"""
@@ -83,7 +101,7 @@ class FilterManager:
             )
     
     def create_fund_filter(self) -> List[str]:
-        """Cria filtro de fundos"""
+        """Cria filtro de fundos com busca avançada"""
         st.markdown("**📈 Fundos**")
         
         available_funds = self._get_available_funds()
@@ -92,13 +110,46 @@ class FilterManager:
             st.warning("Nenhum fundo disponível")
             return []
         
-        select_all = st.checkbox("Todos os Fundos", value=False, key="all_funds")
+        # Filtro de busca
+        search_term = st.text_input(
+            "🔍 Buscar fundos:",
+            placeholder="Digite para filtrar...",
+            key="fund_search"
+        )
+        
+        # Filtrar fundos baseado na busca
+        if search_term:
+            filtered_funds = [fund for fund in available_funds 
+                            if search_term.lower() in fund.lower()]
+            st.info(f"Encontrados {len(filtered_funds)} fundos")
+        else:
+            filtered_funds = available_funds
+        
+        # Opções de seleção
+        col1, col2 = st.columns(2)
+        with col1:
+            select_all = st.checkbox("Todos", value=False, key="all_funds")
+        with col2:
+            clear_selection = st.button("Limpar", key="clear_funds")
+        
+        if clear_selection:
+            st.session_state.selected_funds = []
+            st.rerun()
         
         if select_all:
-            return available_funds
+            selected_funds = filtered_funds
+            # Atualizar session state
+            st.session_state.selected_funds = selected_funds
         else:
-            return st.multiselect(
+            selected_funds = st.multiselect(
                 "Selecione fundos:",
-                options=available_funds,
+                options=filtered_funds,
+                default=st.session_state.get('selected_funds', []),
                 key="selected_funds"
             )
+        
+        # Mostrar resumo
+        if selected_funds:
+            st.success(f"✅ {len(selected_funds)} fundos selecionados")
+        
+        return selected_funds

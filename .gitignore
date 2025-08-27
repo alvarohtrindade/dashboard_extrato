@@ -1,0 +1,59 @@
+# Arquivo de segurança para prevenir vazamento de credenciais
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.staging
+*.env
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# Database backups
+*.sql
+*.dump
+
+# Logs
+logs/
+*.log
+
+# Cache
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+
+# Credentials and keys
+credentials.json
+*.pem
+*.key
+*.crt
+
+# Config with sensitive data
+config_production.yaml
+config_local.yaml
+
+# Python virtual environments
+venv/
+env/
+ENV/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
